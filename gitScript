@@ -1,0 +1,44 @@
+#!/bin/bash
+# Git Auto Commit and Push Script
+# Automatically commits and pushes changes with timestamp
+
+# Get current date and time for commit message
+DATE=$(date '+%Y-%m-%d %H:%M:%S')
+
+# Check if we're in a git repository
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "Error: Not a git repository"
+    exit 1
+fi
+
+# Check for changes
+if [[ -z $(git status -s) ]]; then
+    echo "No changes to commit"
+    exit 0
+fi
+
+# Show what will be committed
+echo "Changes to be committed:"
+git status -s
+echo ""
+
+# Add all changes
+git add .
+
+# Create commit with custom message or default timestamp
+if [ -z "$1" ]; then
+    COMMIT_MSG="Auto commit: $DATE"
+else
+    COMMIT_MSG="$1 - $DATE"
+fi
+
+# Commit changes
+git commit -m "$COMMIT_MSG"
+
+# Push to remote
+echo "Pushing to remote..."
+git push
+
+echo ""
+echo "✓ Successfully committed and pushed changes"
+echo "Commit message: $COMMIT_MSG"

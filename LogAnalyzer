@@ -1,0 +1,41 @@
+#!/bin/bash
+# Simple System Health Monitor
+# Checks CPU, Memory, Disk usage and running services
+
+echo "====== System Health Report ======"
+echo "Date: $(date)"
+echo ""
+
+# CPU Usage
+echo "=== CPU Usage ==="
+top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print "CPU Usage: " 100 - $1"%"}'
+echo ""
+
+# Memory Usage
+echo "=== Memory Usage ==="
+free -h | grep Mem | awk '{print "Total: "$2"\nUsed: "$3"\nFree: "$4}'
+echo ""
+
+# Disk Usage
+echo "=== Disk Usage ==="
+df -h | grep -E '^/dev/' | awk '{print $1": "$5" used ("$3"/"$2")"}'
+echo ""
+
+# Top 5 Memory Consuming Processes
+echo "=== Top 5 Memory Consumers ==="
+ps aux --sort=-%mem | head -6 | tail -5 | awk '{print $11" - "$4"%"}'
+echo ""
+
+# Check if critical services are running
+echo "=== Service Status ==="
+services=("ssh" "docker" "nginx" "mysql")
+for service in "${services[@]}"; do
+    if systemctl is-active --quiet "$service" 2>/dev/null; then
+        echo "✓ $service is running"
+    else
+        echo "✗ $service is not running"
+    fi
+done
+echo ""
+
+echo "====== Report Complete ======"
