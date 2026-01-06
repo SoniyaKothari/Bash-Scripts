@@ -1,41 +1,43 @@
 #!/bin/bash
 # Simple System Health Monitor
-# Checks CPU, Memory, Disk usage and running services
+# Checks CPU, Memory, Disk usage, top processes, and critical services
 
-echo "====== System Health Report ======"
+echo "SYSTEM HEALTH REPORT"
 echo "Date: $(date)"
 echo ""
 
 # CPU Usage
-echo "=== CPU Usage ==="
-top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print "CPU Usage: " 100 - $1"%"}'
+echo "CPU Usage:"
+cpu_idle=$(top -bn1 | grep "Cpu(s)" | awk '{print $8}')
+cpu_usage=$(echo "scale=1; 100 - $cpu_idle" | bc)
+echo "  $cpu_usage% used"
 echo ""
 
 # Memory Usage
-echo "=== Memory Usage ==="
-free -h | grep Mem | awk '{print "Total: "$2"\nUsed: "$3"\nFree: "$4}'
+echo "Memory Usage:"
+free -h | awk '/Mem:/ {printf "  Total: %s | Used: %s | Free: %s\n", $2, $3, $4}'
 echo ""
 
 # Disk Usage
-echo "=== Disk Usage ==="
-df -h | grep -E '^/dev/' | awk '{print $1": "$5" used ("$3"/"$2")"}'
+echo "Disk Usage:"
+df -h | grep -E '^/dev/' | awk '{printf "  %s: %s used (%s/%s)\n", $1, $5, $3, $2}'
 echo ""
 
 # Top 5 Memory Consuming Processes
-echo "=== Top 5 Memory Consumers ==="
-ps aux --sort=-%mem | head -6 | tail -5 | awk '{print $11" - "$4"%"}'
+echo "Top 5 Memory Consuming Processes:"
+ps aux --sort=-%mem | head -6 | tail -5 | awk '{printf "  %-20s - %s%%\n", $11, $4}'
 echo ""
 
-# Check if critical services are running
-echo "=== Service Status ==="
+# Critical Services Status
+echo "Critical Services Status:"
 services=("ssh" "docker" "nginx" "mysql")
 for service in "${services[@]}"; do
     if systemctl is-active --quiet "$service" 2>/dev/null; then
-        echo "✓ $service is running"
+        echo "  $service: running"
     else
-        echo "✗ $service is not running"
+        echo "  $service: NOT running"
     fi
 done
 echo ""
 
-echo "====== Report Complete ======"
+echo "End of Report"
