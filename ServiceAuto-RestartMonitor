@@ -1,8 +1,8 @@
 #!/bin/bash
 # Service Auto-Restart Monitor
-# Checks if a service is running and restarts it if down
+# Checks if a service is running and restarts it if it is down
 
-SERVICE_NAME=${1:-nginx}  # Default to nginx if no service specified
+SERVICE_NAME=${1:-nginx}          # Default to nginx if no service specified
 LOG_FILE="/var/log/service-monitor.log"
 
 # Function to log messages
@@ -20,25 +20,25 @@ fi
 
 # Check service status
 if systemctl is-active --quiet "$SERVICE_NAME"; then
-    log "✓ $SERVICE_NAME is running"
+    log "Service $SERVICE_NAME is running"
     exit 0
 else
-    log "✗ $SERVICE_NAME is not running"
+    log "Service $SERVICE_NAME is not running"
     log "Attempting to restart $SERVICE_NAME..."
     
     # Try to restart the service
     if systemctl restart "$SERVICE_NAME"; then
-        log "✓ Successfully restarted $SERVICE_NAME"
+        log "Successfully restarted $SERVICE_NAME"
         
         # Wait and verify it's running
         sleep 2
         if systemctl is-active --quiet "$SERVICE_NAME"; then
-            log "✓ $SERVICE_NAME is now running properly"
+            log "$SERVICE_NAME is now running properly"
         else
-            log "⚠ $SERVICE_NAME restarted but may not be stable"
+            log "$SERVICE_NAME restarted but may not be stable"
         fi
     else
-        log "✗ Failed to restart $SERVICE_NAME"
+        log "Failed to restart $SERVICE_NAME"
         log "Check service logs: journalctl -u $SERVICE_NAME -n 50"
         exit 1
     fi
