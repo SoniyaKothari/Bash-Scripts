@@ -41,4 +41,4 @@ git push
 
 echo ""
 echo "✓ Successfully committed and pushed changes"
-echo "Commit message: $COMMIT_MSG"
+echo "Commit: $COMMIT_MSG"
